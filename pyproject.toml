@@ -1,0 +1,16 @@
+[project]
+name = "aihub"
+version = "1.0.0"
+description = "AIHub: multi-agent RAG / SQL / web / summarization assistant (Enablers AI Engineer capstone)"
+requires-python = ">=3.10"
+
+[tool.ruff]
+line-length = 100
+src = ["src"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]

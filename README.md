@@ -45,7 +45,7 @@ cp .env.example .env                                    # add GROQ_API_KEY (free
 python scripts/seed_demo_db.py                          # demo data for SQL chat
 
 # terminal 1
-PYTHONPATH=src flask --app "aihub.api.app:app_factory" run --port 8000
+PYTHONPATH=src waitress-serve --listen=127.0.0.1:8000 --call aihub.api.app:app_factory
 # terminal 2
 PYTHONPATH=src streamlit run src/aihub/ui/streamlit_app.py
 ```

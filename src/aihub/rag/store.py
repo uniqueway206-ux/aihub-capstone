@@ -25,7 +25,10 @@ class KnowledgeBase:
         if self._embeddings is None:
             from langchain_huggingface import HuggingFaceEmbeddings
 
-            self._embeddings = HuggingFaceEmbeddings(model_name=self.s.embedding_model)
+            self._embeddings = HuggingFaceEmbeddings(
+                model_name=self.s.embedding_model,
+                model_kwargs={"device": "cpu"},
+            )
         return self._embeddings
 
     def _load(self) -> None:

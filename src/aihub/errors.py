@@ -22,3 +22,7 @@ class UnsafeURLError(ValidationError):
 
 class UpstreamError(AIHubError):
     status = 502
+
+
+class NotADatabaseQuestion(ValidationError):
+    """The generated SQL uses no real table, so the question is not about the database."""

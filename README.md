@@ -3,7 +3,7 @@
 Capstone project for the **Enablers AI Engineer** program. One platform that chats with your PDFs (RAG), queries a SQL database in plain English, searches the web, and summarises web pages / YouTube videos. A LangGraph router decides which agent handles each message.
 
 ```
- Streamlit UI ──HTTP──▶ Flask REST API ──▶ Services ──▶ LangGraph agent
+ Web front end (HTML/CSS/JS) or Streamlit ──HTTP──▶ Flask REST API ──▶ Services ──▶ LangGraph agent
                          (auth, limits,                    │ router
                           validation)                      ├─ rag       FAISS + HF embeddings + Groq
                                                            ├─ sql       NL→SQL, read-only SQLite
@@ -33,7 +33,7 @@ Capstone project for the **Enablers AI Engineer** program. One platform that cha
 - SSRF protection on URL summarisation (public hosts only, no redirects, size cap)
 - Bounded, thread-safe session memory
 - Lazy loading, so `/health` and tests need no API key or model downloads
-- 27 unit tests, ruff linting, GitHub Actions CI, non-root Docker image with healthcheck
+- 29 unit tests, ruff linting, GitHub Actions CI, non-root Docker image with healthcheck
 
 ## Quick start
 
@@ -44,9 +44,9 @@ pip install -r requirements-dev.txt
 cp .env.example .env                                    # add GROQ_API_KEY (free at console.groq.com)
 python scripts/seed_demo_db.py                          # demo data for SQL chat
 
-# terminal 1
+# Web app + API in one terminal, then open http://localhost:8000
 PYTHONPATH=src waitress-serve --listen=127.0.0.1:8000 --call aihub.api.app:app_factory
-# terminal 2
+# Optional: the original Streamlit interface (needs the API running)
 PYTHONPATH=src streamlit run src/aihub/ui/streamlit_app.py
 ```
 

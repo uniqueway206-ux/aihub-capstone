@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AIHub</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <span class="logo">AI</span>
+      <div><h1>AIHub</h1><p>Chat, RAG, SQL, Web, Summaries</p></div>
+    </div>
+
+    <h2>Documents</h2>
+    <label class="drop" id="drop">
+      <input type="file" id="file" accept="application/pdf" hidden>
+      <strong>Upload a PDF</strong>
+      <span>Click here or drag a file in</span>
+    </label>
+    <p id="uploadStatus" class="note" role="status"></p>
+    <ul id="docs" class="docs"></ul>
+
+    <div class="side-actions">
+      <button id="clearDocs" class="ghost" type="button">Clear all documents</button>
+      <button id="newChat" class="ghost" type="button">New conversation</button>
+    </div>
+    <p class="health"><span id="dot" class="dot"></span><span id="healthText">Checking API...</span></p>
+  </aside>
+
+  <main class="main">
+    <nav class="tabs" role="tablist">
+      <button class="tab active" data-tab="chat" type="button">Assistant</button>
+      <button class="tab" data-tab="sum" type="button">Summarizer</button>
+      <button class="tab" data-tab="sql" type="button">SQL</button>
+    </nav>
+
+    <section id="tab-chat" class="panel">
+      <div id="messages" class="messages">
+        <div class="empty" id="empty">
+          <h2>How can I help?</h2>
+          <p>Ask about your PDFs, the demo database, or paste a link and say summarize.</p>
+          <div class="chips">
+            <button type="button" class="chip">What is this document about?</button>
+            <button type="button" class="chip">Which city has the most customers?</button>
+            <button type="button" class="chip">How many orders are in the database?</button>
+          </div>
+        </div>
+      </div>
+      <form id="chatForm" class="composer">
+        <textarea id="msg" rows="1" placeholder="Ask a question. Enter to send, Shift+Enter for a new line." maxlength="4000"></textarea>
+        <button id="send" type="submit">Send</button>
+      </form>
+    </section>
+
+    <section id="tab-sum" class="panel" hidden>
+      <h2>Summarize a web page or YouTube video</h2>
+      <form id="sumForm" class="row">
+        <input id="url" type="url" placeholder="https://en.wikipedia.org/wiki/Retrieval-augmented_generation" required>
+        <button type="submit">Summarize</button>
+      </form>
+      <div id="sumOut" class="result"></div>
+    </section>
+
+    <section id="tab-sql" class="panel" hidden>
+      <h2>Ask the demo database</h2>
+      <p class="note">Tables: customers, products, orders. Only read-only queries are allowed.</p>
+      <form id="sqlForm" class="row">
+        <input id="q" type="text" placeholder="Which city has the most customers?" required maxlength="4000">
+        <button type="submit">Run query</button>
+      </form>
+      <div id="sqlOut" class="result"></div>
+    </section>
+  </main>
+</div>
+<script src="/static/app.js"></script>
+</body>
+</html>

@@ -2,8 +2,9 @@
 import hmac
 import logging
 import uuid
+from pathlib import Path
 
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
@@ -40,7 +41,8 @@ def _required_str(data: dict, key: str, max_len: int = MAX_MESSAGE_CHARS) -> str
 def create_app(settings: Settings | None = None, services: Services | None = None) -> Flask:
     settings = settings or get_settings()
     setup_logging(settings.log_level)
-    app = Flask(__name__)
+    static_dir = Path(__file__).resolve().parent.parent / "static"
+    app = Flask(__name__, static_folder=str(static_dir), static_url_path="/static")
     app.config["MAX_CONTENT_LENGTH"] = settings.max_upload_mb * 1024 * 1024
     CORS(app)
     Limiter(
@@ -58,6 +60,10 @@ def create_app(settings: Settings | None = None, services: Services | None = Non
             supplied = request.headers.get("X-API-Key", "")
             if not hmac.compare_digest(supplied, settings.api_key):
                 return jsonify(error="Invalid or missing API key."), 401
+
+    @app.get("/")
+    def index():
+        return send_from_directory(static_dir, "index.html")
 
     @app.get("/health")
     def health():

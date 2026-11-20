@@ -11,6 +11,7 @@ from typing import TypedDict
 
 from langgraph.graph import END, StateGraph
 
+from ..errors import NotADatabaseQuestion
 from ..llm import text_of
 from ..rag.chain import answer_from_docs
 
@@ -42,14 +43,18 @@ def build_agent(llm, kb, sql_chat: Callable, search_fn: Callable, summarize_fn: 
         forced = heuristic_route(q, kb.has_documents(), True)
         if forced:
             return {"route": forced}
+        names = ", ".join(kb.documents()) if kb.has_documents() else "none"
         prompt = (
-            "Classify the user's message into exactly one label:\n"
-            "rag = about the user's uploaded documents\n"
-            "sql = about structured business data (sales, customers, orders, products, counts)\n"
-            "web = needs current/public information from the internet\n"
-            "chat = greetings or general knowledge\n"
-            f"Documents uploaded: {kb.has_documents()}\n"
-            f"Message: {q}\nAnswer with only the label."
+            "Route the user's message to exactly ONE agent. Reply with only the label.\n"
+            "rag = the question could be answered from the user's uploaded documents. When "
+            "documents are uploaded, this includes questions about AIHub itself, RAG, chunking, "
+            "embeddings, vector databases, models, or safety features.\n"
+            "sql = ONLY when asked to count, list, rank, sum or compare rows of the business "
+            "tables customers, products or orders (cities, prices, order counts).\n"
+            "web = needs current news or facts from the internet.\n"
+            "chat = greetings, thanks, or general knowledge unrelated to the documents.\n"
+            f"Uploaded documents: {names}\n"
+            f"Message: {q}\nLabel:"
         )
         label = text_of(llm.invoke(prompt)).lower()
         route = next((r for r in ROUTES if r in label), "chat")
@@ -64,7 +69,13 @@ def build_agent(llm, kb, sql_chat: Callable, search_fn: Callable, summarize_fn: 
         return {"answer": out["answer"], "sources": out["sources"]}
 
     def sql_node(state: AgentState) -> AgentState:
-        out = sql_chat().ask(state["question"])
+        try:
+            out = sql_chat().ask(state["question"])
+        except NotADatabaseQuestion:
+            # Router guessed wrong: fall back to the documents if there are any, else plain chat.
+            if kb.has_documents():
+                return {"route": "rag", **rag_node(state)}
+            return {"route": "chat", **chat_node(state)}
         return {"answer": out["answer"], "extra": {"sql": out["sql"], "rows": out["rows"]}}
 
     def web_node(state: AgentState) -> AgentState:

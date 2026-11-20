@@ -8,7 +8,7 @@ from pathlib import Path
 
 from sqlalchemy import create_engine, inspect, text
 
-from ..errors import UnsafeSQLError, ValidationError
+from ..errors import NotADatabaseQuestion, UnsafeSQLError, ValidationError
 from ..llm import text_of
 
 _FORBIDDEN = re.compile(
@@ -56,6 +56,9 @@ class SQLChat:
             lines.append(f"{table}({cols})")
         return "\n".join(lines)
 
+    def table_names(self) -> list[str]:
+        return inspect(self.engine).get_table_names()
+
     def run_sql(self, sql: str) -> tuple[list[str], list[list]]:
         sql = validate_select(sql)
         with self.engine.connect() as conn:
@@ -71,6 +74,12 @@ class SQLChat:
             f"Question: {question}"
         )
         sql = validate_select(text_of(gen))
+        tables = self.table_names()
+        if not any(re.search(rf"\b{re.escape(t)}\b", sql, re.IGNORECASE) for t in tables):
+            raise NotADatabaseQuestion(
+                "That does not look like a question about the database tables "
+                "(customers, products, orders)."
+            )
         cols, rows = self.run_sql(sql)
         summary = text_of(
             self.llm.invoke(
